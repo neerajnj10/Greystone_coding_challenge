@@ -6,4 +6,4 @@ This repository is dedicated to discussing and performing data science challenge
 The objective is several stages of data exploration and final model creation for loan amount prediction.
 
 
-plotlyt graph can be found here- https://plot.ly/~neeraj10/13/
+plotly graph for `Year Built` vs `Expenses` can be found here- https://plot.ly/~neeraj10/13/
