@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
-
 import pandas as pd
 import numpy as np
 import zipcode
@@ -28,15 +22,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from datetime import datetime, timedelta
 
-
-# In[2]:
-
-
 df = pd.read_csv('C:/Users/Nj_neeraj/Documents/re_data.csv')
-
-
-# In[3]:
-
 
 df.dtypes
 # to change zip to object/character 
@@ -45,17 +31,9 @@ df['Zip'] = df.Zip.astype(object)
 df['Year Built'].replace('', np.nan, inplace=True)
 df.dropna(subset=['Year Built'], inplace=True)
 
-
-# In[4]:
-
-
 ## we notice the year column also has multiple entries in the same cell, we will remove them as well.
 df[df['Year Built'].str.contains(",")]
 df = df[df['Year Built'].str.contains(",") == False]
-
-
-# In[5]:
-
 
 #check for nan values.
 zip=df['Zip']
@@ -66,10 +44,6 @@ df_zipsub = df.dropna()
 ##check again for nan values.
 zips=df_zipsub['Zip']
 pd.isnull(zips).sum() > 0
-
-
-# In[6]:
-
 
 ##now create states from zip
 zips=zips.astype(int)
@@ -87,15 +61,8 @@ for i in zips:
         combine =  pd.concat([states, zipcode], ignore_index=True, axis=1)
 
 
-# In[7]:
-
-
 combine.columns = ['State','Zip']
 combine = combine.reset_index(drop=True)
-
-
-# In[8]:
-
 
 df_zipsub['Zip'] = df_zipsub['Zip'].astype(int)
 df_zipsub['Zip'] = df_zipsub['Zip'].astype(str)
@@ -103,10 +70,6 @@ df_new = pd.merge(df_zipsub,combine, on = 'Zip', how= 'left')
 df_new=df_new.drop_duplicates() 
 #df_new.sort_values(by=['First Payment Date'], ascending=[True])
 #df_new = df_new.dropna()
-
-
-# In[9]:
-
 
 ### We find if there are NA rows.
 null_data = df_new[df_new.isnull().any(axis=1)]
@@ -116,10 +79,6 @@ df_new = df_new.dropna()
 ### Now we have clean dataset and we will reste the index one more time for clarity and readability purpose.
 df_new = df_new.reset_index(drop=True)
 
-
-# In[10]:
-
-
 ### Lets first find out which state has highest average loan amount
 
 average = df_new.groupby(['State']).mean()
@@ -127,23 +86,11 @@ average = average[['Loan Amount']]
 ##Sort it descending order to see which state has highest value.
 average.sort_values(by=['Loan Amount'], ascending=[False])
 
-
-# In[11]:
-
-
 ## We can clearly see Ohio has the highest average loan amount.
 ## We can visualize it now to make the comparison clear.
 sns.set(style="whitegrid", color_codes=True)
 
-
-# In[12]:
-
-
 average.reset_index().plot(x='State', y='Loan Amount')
-
-
-# In[13]:
-
 
 ### taxes as a % of property value
 ## df_new.dtypes shows that 'Property Value' column intead of Floating point, which gives the indication the column has erroneous 
@@ -160,10 +107,6 @@ df_new = df_new[df_new['Property Value'].str.contains("Error") == False]
 ### Now we can convert object type to floating point for calculation.
 df_new['Property Value'] = df_new['Property Value'].astype(float)
 df_new['Tax_Percent'] = (df_new['Taxes Expense']/df_new['Property Value'])*100
-
-
-# In[14]:
-
 
 state_tax = df_new[['State','Tax_Percent']]
 state_tax.sort_values(by=['Tax_Percent'], ascending=[False])
@@ -188,16 +131,8 @@ state_tax.sort_values(by=['Tax_Percent'], ascending=[False])
 ### actual non-zero amount to lend someone. If we want to do the former, then we might want to keep 0 values in Taxes expense and 
 ### other columns/variables as well. This is subjective and for now, we will keep it simple with our given understanding.
 
-
-# In[15]:
-
-
 ### Maintenance as a percentage of property value.
 df_new['Maintenance_Percent'] = (df_new['Maintenance Expense']/df_new['Property Value'])*100
-
-
-# In[16]:
-
 
 ### Easiest ad simplest way to find the strong predictors, is corrlation matrix or scatter plot matrix that describes the 
 ### dependencies and relation between two variables to each other.
@@ -218,23 +153,10 @@ print(df_maintenance.corr())
 ### 'Total Operating Expenses' with 27% of relation. Note, 'Total Operating Expenses' was strongest predictor for 'Maintenance Expense'
 ### variable.
 
-
-# In[17]:
-
-
 corr = df_maintenance.corr()
 sns.heatmap(corr, 
             xticklabels=corr.columns.values,
             yticklabels=corr.columns.values)
-
-
-# In[18]:
-
-
-df_maintenance.head()
-
-
-# In[19]:
 
 
 ### Now we can also confirm that Maintenance_Percent doe snot have strong relation with any predictor, we can use Anova test for
@@ -251,10 +173,6 @@ model = smf.ols(formula='Maintenance_Percent ~ df_maintenance["Total Operating E
 results = model.fit()
 print (results.summary())
 
-
-# In[20]:
-
-
 median= df_new['Loan Amount'].median()
 range_ = (df_new['Loan Amount'].max() - df_new['Loan Amount'].min())
 var = df_new['Loan Amount'].var()
@@ -263,30 +181,14 @@ df_new['Loan Amount'].describe()
 ### Calculation of loan amount from the above statistics look highly un-deterministic, rather probabilistic.
 df_new.columns
 
-
-# In[21]:
-
-
 df1 = df_new[['Property Value','Total Operating Expenses',
        'Maintenance Expense', 'Parking Expense', 'Taxes Expense',
        'Insurance Expense', 'Utilities Expense', 'Payroll Expense']]
 
-
-# In[22]:
-
-
 g = sns.PairGrid(df1)
 g.map(plt.scatter);
 
-
-# In[23]:
-
-
 df1.corr()
-
-
-# In[24]:
-
 
 ### From the scatter plot (first column) and the correlation matrix (first column), we are able to find certain pattern.
 ### We see that property value has very high linear trending relation with 'Total Operating Expenses', 'Maintenance Expenses',
@@ -302,10 +204,6 @@ df1.corr()
 ### We can also try to add all the expenses together as one and see their combined relation with property value.
 df1['Total_Expenses'] =df1['Total Operating Expenses'].values + df1['Maintenance Expense'].values + df1['Parking Expense'].values +df1['Taxes Expense'].values + df1['Insurance Expense'].values + df1['Utilities Expense'].values + df1['Payroll Expense'].values
 
-
-# In[25]:
-
-
 df1[['Property Value', 'Total_Expenses']].corr()
 g = sns.PairGrid(df1[['Property Value', 'Total_Expenses']])
 g.map(plt.scatter);
@@ -313,55 +211,27 @@ g.map(plt.scatter);
 ### We are able to confirm, higher property value means higher expenses. Property values are usually higher in mmore expensive locations/areas,
 ### hence higher cost of overall living.
 
-
-# In[26]:
-
-
 df_new['Expense_ratio'] = df_new['Total Operating Expenses']/df_new['Effective Gross Income']
-
-
-# In[27]:
-
 
 fig, ax = plt.subplots(figsize=(10,10)) 
 sns.stripplot(x="State", y="Expense_ratio", data=df_new, jitter=True, ax= ax);
 
-
-# In[28]:
-
-
 fig, ax = plt.subplots(figsize=(10,10)) 
 sns.boxplot(x="State", y="Expense_ratio", data=df_new, ax=ax);
-
-
-# In[29]:
-
 
 fig, ax = plt.subplots(figsize=(10,10)) 
 flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
 sns.barplot(x="State", y="Expense_ratio", data=df_new,ci=None, ax = ax)
 
-
-# In[30]:
-
-
 ### We can see from all 3 plots that states on the right side have higher expense ratio concentration, higher than mean value 
 df_new['Expense_ratio'].mean()
 ### A stand out observation from this is of NY state, which has lowest Expense ration compared to other states.
-
-
-# In[31]:
-
 
 df_new.head()
 df2 = df_new[['Year Built','Total Operating Expenses',
        'Maintenance Expense', 'Parking Expense', 'Taxes Expense',
        'Insurance Expense', 'Utilities Expense', 'Payroll Expense']]
 df2['Total_Expenses'] =df2['Total Operating Expenses'].values + df2['Maintenance Expense'].values + df2['Parking Expense'].values +df2['Taxes Expense'].values + df2['Insurance Expense'].values + df2['Utilities Expense'].values + df2['Payroll Expense'].values
-
-
-# In[32]:
-
 
 #df_new.to_csv('C:/Users/Nj_neeraj/Documents/clean_data.csv', sep=',')
 df2.to_csv('C:/Users/Nj_neeraj/Documents/expense_year.csv', sep=',')
@@ -370,10 +240,6 @@ df2.to_csv('C:/Users/Nj_neeraj/Documents/expense_year.csv', sep=',')
 ### From less than a million in year 1940 and below, to close to 5 million and above, for succesive years.
 ### correlation between expenses and year for property comes out ot be .42
 #https://plot.ly/~neeraj10/13/
-
-
-# In[33]:
-
 
 ###Create fiscal quarter
 df_new['First Payment Date'] = pd.to_datetime(df_new['First Payment Date'])
@@ -385,18 +251,11 @@ df_new['Quarter'] = df_new['Quarter'].astype(object)
 df_new['Quarter'] = df_new["Year"].map(str) + "_" +df_new["Quarter"].map(str)
 df3 = df_new[['Loan Amount', 'Quarter']]
 
-
-# In[34]:
-
-
 quarter_cumulate = df3.groupby(by=['Quarter']).sum().groupby(level=[0]).cumsum()
 quarter_cumulate.reset_index().plot(x='Quarter', y='Loan Amount')
 ### As we can clearly see, the exponential rise in loan amount from 4th quarter of 2015, peaking the highest in Quarter 4th of 2016
 ### and again, trending down from there till quarter 4th of 2017. It is almost a bell shaped curve that defines almost the normal
 ### distribution nature and relation between loan amount and quarterly distribution.
-
-
-# In[52]:
 
 
 ### Loan Prediction
@@ -437,16 +296,8 @@ df_new['Utilities Expense'] = np.log(df_new['Utilities Expense'])
 df_new['Payroll Expense'] = df_new['Payroll Expense'].replace(0,df_new['Payroll Expense'].mean())
 df_new['Payroll Expense'] = np.log(df_new['Payroll Expense'])
 
-
-# In[53]:
-
-
 ##Now we split the dataset to train and test set.
 train, test = train_test_split(df_new, test_size=0.2)
-
-
-# In[55]:
-
 
 pd.options.display.float_format = '{:.2f}'.format
 num_vbl = {'Property Value','Net Operating Income','Effective Gross Income','Total Operating Expenses','Maintenance Expense',
@@ -474,9 +325,6 @@ y_train = train['Loan Amount'].values
 x_test = test[list(features)].values
 
 
-# In[56]:
-
-
 param_grid = {"max_depth": [3, None],
               "max_features": [1, 3, 10],
               "min_samples_split": [2, 3, 10],
@@ -487,19 +335,11 @@ param_grid = {"max_depth": [3, None],
 gs = grid_search.GridSearchCV(RandomForestRegressor(), param_grid=param_grid)
 gs.fit(x_train, y_train)
 
-
-# In[57]:
-
-
 print ("Starting to predict on the dataset")
 rec= gs.predict(x_test)
 print ("Prediction Completed")
 test['LoanAmount_Predicted'] = rec
 print("r2 / variance : ", gs.best_score_)
-
-
-# In[66]:
-
 
 test['LoanAmount_Predicted'] = np.exp(test['LoanAmount_Predicted'])
 test['Loan Amount'] = np.exp(test['Loan Amount'])
